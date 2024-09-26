@@ -22,10 +22,5 @@ Things you may want to cover:
 * Deployment instructions
 
 * ...
-# Ikasle-Task-Manager
 # Task-Manager
-# Task-Manager
-# Task-Manager
-# Task-Manager
-# Task-Manager
-# Task-Manager
+
