@@ -92,6 +92,5 @@ gem 'axlsx_rails'
 gem 'sidekiq'
 gem 'whenever', require: false
 gem 'sidekiq-scheduler'
-gem 'caxlsx_rails'
 
 
