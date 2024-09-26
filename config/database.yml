@@ -1,0 +1,21 @@
+default: &default
+  adapter: mysql2
+  encoding: utf8
+  pool: 5
+  username: root
+  password: Str0ngP@ssw0rd!
+  host: localhost
+
+development:
+  <<: *default
+  database: tasker_development
+
+test:
+  <<: *default
+  database: tasker_test
+
+production:
+  <<: *default
+  database: tasker_production
+  username: tasker
+  password: Str0ngP@ssw0rd!

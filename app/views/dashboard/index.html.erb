@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboards</title>
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+
+  <%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %>
+  <%= javascript_include_tag 'https://cdn.jsdelivr.net/npm/chart.js' %>
+  <%= javascript_include_tag 'https://cdn.jsdelivr.net/npm/chartkick@4.0.1/dist/chartkick.js' %>
+  <%= stylesheet_link_tag 'dashboard', media: 'all', 'data-turbo-track': 'reload' %>
+
+</head>
+<body>
+
+  <h2>DASHBOARDS</h2>
+
+  <div class="div3">
+    <h4>Today Log</h4>
+    <%= column_chart @user_day_logs, height: '150px'%>
+    <p class="status-info">Check Log: <%= @check_log %> | Break Log: <%= @break_log %></p>
+  </div>
+
+  <% if current_user.admin? || current_user.manager? || current_user.team_lead? %>
+    <div class="filters">
+      <form method="get">
+        <label for="status">Filter by Status:</label>
+        <select name="status" id="status">
+          <option value="">All</option>
+          <option value="active" <%= 'selected' if params[:status] == 'active' %>>Active</option>
+          <option value="paused" <%= 'selected' if params[:status] == 'paused' %>>Paused</option>
+          <option value="completed" <%= 'selected' if params[:status] == 'completed' %>>Completed</option>
+        </select>
+        <button type="submit">Apply Filter</button>
+      </form>
+
+      <form method="get" class="filter-form">
+        <label for="completion_time_filter">Completion Time Filter:</label>
+        <select name="completion_time_filter" id="completion_time_filter">
+          <option value="">All</option>
+          <option value="this_week" <%= 'selected' if params[:completion_time_filter] == 'this_week' %>>This Week</option>
+          <option value="last_week" <%= 'selected' if params[:completion_time_filter] == 'last_week' %>>Last Week</option>
+          <option value="last_month" <%= 'selected' if params[:completion_time_filter] == 'last_month' %>>Last Month</option>
+        </select>
+        <button type="submit">Apply Filter</button>
+      </form>
+
+      <form method="get" class="filter-form">
+        <label for="assigned_filter">Assigned Filter:</label>
+        <select name="assigned" id="assigned_filter">
+          <option value="">All</option>
+          <option value="assigned" <%= 'selected' if params[:assigned] == 'assigned' %>>Assigned</option>
+          <option value="not_assigned" <%= 'selected' if params[:assigned] == 'not_assigned' %>>Not Assigned</option>
+        </select>
+        <button type="submit">Apply Filter</button>
+      </form>
+    </div>
+
+    <div class="div1">
+      <div class="div2">
+        <h4>Tasks Created per Day</h4>
+        <%= bar_chart @tasks_created_per_day, height: '200px' %>
+      </div>
+
+      <div class="div2">
+        <h4>Task Status Distribution</h4>
+        <%= pie_chart @status_counts, height: '200px' %>
+        <p class="status-info">Completed: <%= @status_counts['completed'] %> | Incomplete: <%= @status_counts['active'].to_i + @status_counts['paused'].to_i %></p>
+      </div>
+    </div>
+
+    <div class="div1">
+      <div class="div2">
+        <h4>Average Completion Time per Week</h4>
+        <%= pie_chart @average_completion_time_per_week, height: '200px' %>
+        <p class="status-info">Completed: <%= @status_counts['completed'] %> | Incomplete: <%= @status_counts['active'].to_i + @status_counts['paused'].to_i %></p>
+      </div>
+
+      <div class="div2">
+        <h4>Tasks Assigned to Members</h4>
+        <%= pie_chart({ "Assigned" => @assigned_count, "Not Assigned" => @not_assigned_count }, height: '200px' ) %>
+        <p class="status-info">Assigned: <%= @assigned_count %> | Not Assigned: <%= @not_assigned_count %></p>
+      </div>
+    </div>
+
+  <% else %>
+    <div class="div1">
+      <div class="div2">
+        <h5>Task Status Distribution</h5>
+        <%= pie_chart @user_status_counts, height: '200px' %>
+        <p class="status-info">Completed: <%= @user_status_counts['completed'].to_i %> | Incomplete: <%= @user_status_counts['active'].to_i + @user_status_counts['paused'].to_i %></p>
+      </div>
+
+      <div class="div2">
+        <h5>Active Tasks</h5>
+        <%= line_chart @user_status_counts, height: '200px' %>
+        <p class="status-info">Completed: <%= @user_status_counts['completed'].to_i %> | Incomplete: <%= @user_status_counts['active'].to_i + @user_status_counts['paused'].to_i %></p>
+      </div>
+    </div>
+
+  <% end %>
+
+  <h4 style="text-align:center">TASK DURATIONS</h4>
+
+  <div class="justify-content-center task_duration">
+    <% if @user_active_tasks.present? %>
+      <% @user_active_tasks.each_slice(3) do |tasks| %>
+        <div class="row">
+          <% tasks.each do |task| %>
+            <div class="col-md-4">
+              <div class="card mb-3 task-card">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="card-title mb-0 mr-3"><strong><%= task.title.to_s.titleize %>:</strong></h6>
+                    <% if task.due_start_date.present? && task.due_end_date.present? %>
+                      <span class="time-remaining ml-auto" data-start="<%= task.due_start_date %>" data-end="<%= task.due_end_date %>"></span>
+                    <% end %>
+                  </div>
+
+                  <% if task.due_start_date.present? && task.due_end_date.present? %>
+                    <%= pie_chart @task_time_distributions[task.title], height: '150px' %>
+                  <% else %>
+                    <span>Due dates not set</span>
+                  <% end %>
+
+                  <!-- Status Form -->
+                  <div style="display: inline; margin-top: 40px;">
+                    <%= form_with url: update_task_log_status_task_path(task), method: :post, local: true do %>
+                        <div style="display: inline-block; margin-right: 50px;">
+                          <% task_log = task.task_logs.last %>
+                        <% if task_log && task_log.status == 'active' %>
+                          <p>Active: <span id="active-timer">00:00</span></p>
+                        <% else %>
+                          <p>Status: <span id="status-message">Pause</span></p>
+                        <% end %>
+                        </div>
+                      <div class="align-items-center" style="display: inline-block; margin-left: 60px;">
+                        <label for="task_status"></label>
+                          <%= select_tag :status, options_for_select(TaskLog.statuses.keys.map { |status| [status.humanize, status] }, task.status)%>
+                          <%= hidden_field_tag :task_id, task.id %>
+                          <%= hidden_field_tag :active, '', id: 'active-timer-hidden' %>
+                          <%= submit_tag 'Update', class: 'btn btn-custom btn-sm' %>
+                      </div>
+                    <% end %>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    <% else %>
+      <div style="text-align:center; padding-bottom: 50px; font-weight: bold; font-size: 30px; color: gray;">
+        <%= image_tag 'no_task.png', alt: 'No active tasks', style: 'max-width: 100%; height: 100px;' %> No Active Task!
+      </div>
+    <% end %>
+  </div>
+
+
+  <%# user current date log table  %>
+
+<!-- Display filtered data -->
+<% if current_user.admin? || current_user.manager? || current_user.team_lead? %>
+<div class="d-flex justify-content-between log_table align-items-center mb-3">
+  <p class="log_text">USER LOGS</p>
+  <%= form_tag(dashboard_index_path, method: :get, class: 'form-inline') do %>
+    <div class="form-group mr-2">
+      <label for="date_range_start" class="mr-2">Start Date:</label>
+      <%= date_field_tag :date_range_start, params[:date_range_start], class: 'form-control' %>
+    </div>
+    <div class="form-group mr-2">
+      <label for="date_range_end" class="mr-2">End Date:</label>
+      <%= date_field_tag :date_range_end, params[:date_range_end], class: 'form-control' %>
+    </div>
+    <%= submit_tag 'Filter', class: 'btn btn-primary' %>
+  <% end %>
+
+  <%= link_to 'Download CSV', download_user_logs_dashboard_index_path(format: :csv), class: 'btn btn-success' %>
+
+</div>
+<div class="table-container">
+  <% if @teams_with_logs.present? %>
+    <% @teams_with_logs.each do |team, logs| %>
+      <h3><%= team.to_s.titleize %></h3>
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead class="thead-dark">
+            <tr>
+              <th>User</th>
+              <th>Login Time</th>
+              <th>Check-in Time</th>
+              <th>Check-out Time</th>
+              <th>Logout Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% logs.each do |log| %>
+              <tr>
+                <td><%= log.user.name.to_s.titleize %></td>
+                <td><%= log.login_time&.strftime('%H:%M') || 'N/A' %></td>
+                <td><%= @user_check_logs.find_by(user_id: log.user_id)&.check_in&.strftime('%H:%M') || 'N/A' %></td>
+                <td><%= @user_check_logs.find_by(user_id: log.user_id)&.check_out&.strftime('%H:%M') || 'N/A' %></td>
+                <td><%= log.logout_time&.strftime('%H:%M') || 'N/A' %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% end %>
+  <% else %>
+    <p>No logs available for the selected date range.</p>
+  <% end %>
+</div>
+<% end %>
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    function updateTimers() {
+      const timers = document.querySelectorAll('.time-remaining');
+
+      timers.forEach(timer => {
+        const start = new Date(timer.getAttribute('data-start'));
+        const end = new Date(timer.getAttribute('data-end'));
+        const now = new Date();
+
+        if (now >= end) {
+          timer.textContent = 'Task is overdue';
+          timer.classList.add('overdue-message');
+          return;
+        }
+
+        const totalSeconds = Math.floor((end - now) / 1000);
+        const days = Math.floor(totalSeconds / (3600 * 24));
+        const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        timer.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+      });
+    }
+
+    setInterval(updateTimers, 1000);
+    updateTimers();
+  });
+</script>
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var timerElement = document.getElementById('active-timer');
+    var hiddenField = document.getElementById('active-timer-hidden');
+    var initialElapsedTime = <%= @task_log.present? ? @task_log.total_elapsed_time : 0 %>;
+
+    var updateTimer = function() {
+      var minutes = Math.floor(initialElapsedTime / 60);
+      var seconds = initialElapsedTime % 60;
+      timerElement.textContent = minutes + 'm ' + seconds + 's';
+      
+      hiddenField.value = initialElapsedTime;
+      initialElapsedTime += 1;
+    };
+
+    if (timerElement) {
+      setInterval(updateTimer, 1000);
+    }
+  });
+</script>
+
+
+
+ 
+</body>
+</html>
