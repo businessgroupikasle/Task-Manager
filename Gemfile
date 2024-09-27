@@ -88,7 +88,7 @@ gem 'activeadmin'
 gem 'kaminari'
 gem 'caracal'
 gem 'rubyzip'
-gem 'axlsx_rails'
+gem 'caxlsx_rails'
 gem 'sidekiq'
 gem 'whenever', require: false
 gem 'sidekiq-scheduler'

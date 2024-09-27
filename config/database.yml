@@ -2,13 +2,13 @@ default: &default
   adapter: mysql2
   encoding: utf8
   pool: 5
-  username: root
-  password: Str0ngP@ssw0rd!
-  host: localhost
+  username: u332593518_ikasle_tasker
+  password: QWERT!@34qwert
+  host: srv1639.hstgr.io
 
 development:
   <<: *default
-  database: tasker_development
+  database: u332593518_ikasle_tasker
 
 test:
   <<: *default
@@ -16,6 +16,6 @@ test:
 
 production:
   <<: *default
-  database: tasker_production
-  username: tasker
-  password: Str0ngP@ssw0rd!
+  database: u332593518_ikasle_tasker
+  username: u332593518_ikasle_tasker
+  password: QWERT!@34qwert
