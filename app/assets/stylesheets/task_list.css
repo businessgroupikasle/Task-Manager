@@ -83,3 +83,12 @@ h3{
   color: #143b9a;
   font-weight: bold;
 }
+.no_task{
+  padding-bottom: 50px;
+  font-weight: bold;
+  font-size: 30px;
+  color: gray;
+  align-items: center;
+  padding: 100px;
+ 
+}

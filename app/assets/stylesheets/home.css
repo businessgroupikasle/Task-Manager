@@ -47,11 +47,10 @@ body {
 .custom-heading {
   font-size: 20px;
   margin-top: 30%;
-  padding-top:50px;
   font-weight: bold;
   animation: fadeInRight 1.5s ease-in-out; /* Add animation */
   padding-left: 50px;
-  
+
 }
 .custom-paragraph {
   font-size: 1.1rem;
@@ -61,16 +60,18 @@ body {
 }
 #get-started{
   margin-left: 10%;
-  margin-bottom: 40%;
+  margin-bottom: 50%;
 
 }
 .bus_grp{
   margin-left: 250px;
-  color: aliceblue;
+  color: black;
+  font-weight: bolder;
+  font-size: 25px;
 ;
 }
 .custom-button{
-  margin-left: 50px;
+  margin-left: 40px;
   margin-bottom: 110px;
   border-radius: 5px;
   font-weight: bold;
